@@ -165,7 +165,7 @@ set before first paint to avoid a flash.
 
 ## Testing
 
-46 tests across 4 files, run with Vitest and React Testing Library.
+47 tests across 4 files, run with Vitest and React Testing Library.
 
 ```bash
 npm test

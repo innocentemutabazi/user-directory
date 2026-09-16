@@ -41,6 +41,14 @@ describe('UserListPage', () => {
     expect(screen.getByText('3 of 3 people shown')).toBeInTheDocument();
   });
 
+  it('shows an empty state when the API returns no users', async () => {
+    mockFetchSuccess([]);
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'No people found' })).toBeInTheDocument();
+    expect(screen.getByText('0 of 0 people shown')).toBeInTheDocument();
+  });
+
   it('filters the grid as the user types', async () => {
     const user = userEvent.setup();
     mockFetchSuccess(mockUsers);
