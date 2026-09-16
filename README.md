@@ -65,7 +65,9 @@ src/
 ├── features/
 │   └── users/
 │       ├── index.ts            # The feature's public API — see note below
-│       ├── api/usersApi.ts     # The only module that knows the endpoints
+│       ├── api/
+│       │   ├── usersApi.ts     # The only module that knows the endpoints
+│       │   └── usersCache.ts   # Session cache so Back doesn't refetch the list
 │       ├── components/         # SearchBar, SortToggle, UserCard, skeletons
 │       ├── hooks/              # useUsers, useUser
 │       ├── pages/              # UserListPage, UserDetailPage
@@ -140,6 +142,26 @@ which is why the suite splits cleanly into hook unit tests and page integration 
 request, and it means `/users/3` works as a pasted link, a bookmark, or a hard refresh. A profile
 page that only works if you arrived from the list is not really a route.
 
+### Why the list is cached outside the component tree
+
+`UserListPage` unmounts when the router navigates to `/users/:id` and remounts when the user
+presses Back — that is how React Router's route swapping works, not a bug. Without something
+outside the component tree to remember the result, that remount re-ran `useUsers`' effect from
+scratch: a fresh loading state and a fresh network request for data that had not changed.
+
+`usersCache.ts` is one module-level variable holding the resolved list, plus a de-duper so
+concurrent callers (including React 18 StrictMode's mount → unmount → mount replay in development)
+share one in-flight request instead of firing two. `useUsers` seeds its initial state from the
+cache via a lazy initializer, so a warm remount renders the real list on the first frame — no
+loading flash, no second request. `refetch()` invalidates the cache before re-fetching, so the
+retry button on the error state still reaches the network.
+
+This is deliberately not a general-purpose cache — no TTL, no per-id keys, no invalidation policy.
+It solves the one coordination problem this app has: share one fetch's result across every mount of
+one hook. It is the same reasoning as the "why native state management" section above, applied one
+layer lower — reach for the smallest thing that closes the actual gap, not the general solution to
+a problem the app doesn't have.
+
 ### Why search and sort live in the URL
 
 The requirement was that "Back to Directory" preserves the previous state. Router state would do
@@ -165,18 +187,19 @@ set before first paint to avoid a flash.
 
 ## Testing
 
-47 tests across 4 files, run with Vitest and React Testing Library.
+53 tests across 5 files, run with Vitest and React Testing Library.
 
 ```bash
 npm test
 ```
 
-| File                      | Covers                                                                                                                                                                                   |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useUsers.test.ts`        | Fetch lifecycle, A–Z/Z–A sorting, case-insensitive and partial search, whitespace handling, empty state, HTTP and network failures, malformed payloads, retry recovery, abort-on-unmount |
-| `UserCard.test.tsx`       | Rendered fields, profile link, search params carried into the link, accessible name, single tab stop, initials derivation including honorifics                                           |
-| `UserListPage.test.tsx`   | Loading → loaded flow, live filtering, empty state and recovery, sort toggle, query and sort restored from the URL, error state with working retry                                       |
-| `UserDetailPage.test.tsx` | All required fields, correct endpoint, `mailto:`/`tel:` link generation, both back-navigation paths, 404 handling, non-numeric id guard                                                  |
+| File                        | Covers                                                                                                                                                              |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useUsers.test.ts`          | Fetch lifecycle, A–Z/Z–A sorting, case-insensitive and partial search, whitespace handling, empty state, HTTP and network failures, malformed payloads, retry recovery, session-cache reuse, concurrent-mount de-duplication, and the unmount-before-resolve safety net |
+| `UserCard.test.tsx`         | Rendered fields, profile link, search params carried into the link, accessible name, single tab stop, initials derivation including honorifics                    |
+| `UserListPage.test.tsx`     | Loading → loaded flow, live filtering, empty state and recovery (including a zero-users-from-the-API result, distinct from a no-matches search), sort toggle, query and sort restored from the URL, error state with working retry |
+| `UserDetailPage.test.tsx`   | All required fields, correct endpoint, `mailto:`/`tel:` link generation, both back-navigation paths, 404 handling, non-numeric id guard                            |
+| `UserNavigation.test.tsx`   | List → profile → Back with both routes mounted together: the list is not refetched, renders immediately from cache, and the search filter survives the round trip |
 
 Tests assert on what a user perceives — roles, labels, visible text — rather than on component
 internals, so they survive refactors. `fetch` is stubbed per test via helpers in
@@ -239,8 +262,11 @@ return shape with that migration in mind, but did not build for a scale the API 
 instant and a debounce would only add perceived lag. The moment a keystroke costs a request, it
 becomes necessary.
 
-**A request cache.** The list and the detail page fetch independently, so clicking a user re-fetches
-a record already in memory. TanStack Query, or a small shared cache, would remove that round trip.
+**Extend the cache to the detail endpoint.** The list is cached (`usersCache.ts`), so navigating
+back to it is free after the first load — but opening the same profile twice still fetches it
+twice, since `useUser` has no cache of its own. The pattern is proven; it's a matter of applying it
+to a second, keyed-by-id dataset. TanStack Query would replace both hand-rolled caches with one
+well-tested one, at the bundle-size cost discussed above.
 
 **End-to-end tests.** The current suite mocks `fetch`. Playwright covering search → open profile →
 back-with-state-preserved would test the real router, the real network layer, and the real browser

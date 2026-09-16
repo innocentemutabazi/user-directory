@@ -1,12 +1,17 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import {
   mockFetchHttpError,
   mockFetchNetworkError,
   mockFetchSuccess,
   mockUsers,
 } from '@/test/fixtures';
+import { resetUsersCacheForTests } from '../api/usersCache';
 import { useUsers } from './useUsers';
+
+beforeEach(() => {
+  resetUsersCacheForTests();
+});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -38,7 +43,7 @@ describe('useUsers', () => {
       expect(result.current.error).toBeNull();
       expect(fetchMock).toHaveBeenCalledWith(
         'https://jsonplaceholder.typicode.com/users',
-        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+        expect.objectContaining({ headers: { Accept: 'application/json' } }),
       );
     });
   });
@@ -243,16 +248,73 @@ describe('useUsers', () => {
     });
   });
 
-  describe('cleanup', () => {
-    it('aborts the in-flight request on unmount', async () => {
+  describe('session cache', () => {
+    it('reuses the cached list on a later mount, without a second network call', async () => {
       const fetchMock = mockFetchSuccess(mockUsers);
 
-      const { unmount } = renderHook(() => useUsers());
-      const signal = fetchMock.mock.calls[0]?.[1]?.signal as AbortSignal;
+      const first = renderHook(() => useUsers());
+      await waitFor(() => expect(first.result.current.loading).toBe(false));
+      first.unmount();
 
-      expect(signal.aborted).toBe(false);
+      const second = renderHook(() => useUsers());
+
+      expect(second.result.current.loading).toBe(false);
+      expect(second.result.current.users).toHaveLength(3);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('shares one in-flight request across simultaneous mounts', async () => {
+      const fetchMock = mockFetchSuccess(mockUsers);
+
+      const first = renderHook(() => useUsers());
+      const second = renderHook(() => useUsers());
+
+      await waitFor(() => expect(first.result.current.loading).toBe(false));
+      await waitFor(() => expect(second.result.current.loading).toBe(false));
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(first.result.current.users).toHaveLength(3);
+      expect(second.result.current.users).toHaveLength(3);
+    });
+
+    it('refetch invalidates the cache and hits the network again', async () => {
+      const fetchMock = mockFetchSuccess(mockUsers);
+
+      const { result } = renderHook(() => useUsers());
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      act(() => result.current.refetch());
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(result.current.users).toHaveLength(3);
+    });
+
+    it('does not update state if the request resolves after unmount', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      let resolveResponse: (value: {
+        ok: boolean;
+        status: number;
+        json: () => Promise<unknown>;
+      }) => void = () => {};
+      const fetchMock = vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveResponse = resolve;
+          }),
+      );
+      vi.stubGlobal('fetch', fetchMock);
+
+      const { unmount } = renderHook(() => useUsers());
       unmount();
-      expect(signal.aborted).toBe(true);
+
+      await act(async () => {
+        resolveResponse({ ok: true, status: 200, json: async () => mockUsers });
+        await Promise.resolve();
+      });
+
+      expect(consoleError).not.toHaveBeenCalled();
+      consoleError.mockRestore();
     });
   });
 });

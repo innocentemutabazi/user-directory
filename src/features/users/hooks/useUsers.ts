@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toErrorMessage } from '@/lib/http';
-import { fetchUsers } from '../api/usersApi';
+import { invalidateUsersCache, loadUsers, readUsersCache } from '../api/usersCache';
 import type { SearchableField, SortOrder, User } from '../types/user';
 
 export interface UseUsersOptions {
@@ -39,8 +39,8 @@ export function useUsers(options: UseUsersOptions = {}): UseUsersResult {
     searchFields = DEFAULT_SEARCH_FIELDS,
   } = options;
 
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [allUsers, setAllUsers] = useState<User[]>(() => readUsersCache() ?? []);
+  const [loading, setLoading] = useState(() => readUsersCache() === null);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState(initialQuery);
   const [sortOrder, setSortOrder] = useState<SortOrder>(initialSortOrder);
@@ -48,19 +48,26 @@ export function useUsers(options: UseUsersOptions = {}): UseUsersResult {
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    const controller = new AbortController();
+    const cached = readUsersCache();
+    if (cached) {
+      setAllUsers(cached);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     let active = true;
 
     setLoading(true);
     setError(null);
 
-    fetchUsers(controller.signal)
+    loadUsers()
       .then((data) => {
         if (!active) return;
         setAllUsers(data);
       })
       .catch((cause: unknown) => {
-        if (!active || controller.signal.aborted) return;
+        if (!active) return;
         setAllUsers([]);
         setError(toErrorMessage(cause));
       })
@@ -71,11 +78,11 @@ export function useUsers(options: UseUsersOptions = {}): UseUsersResult {
 
     return () => {
       active = false;
-      controller.abort();
     };
   }, [attempt]);
 
   const refetch = useCallback(() => {
+    invalidateUsersCache();
     setAttempt((current) => current + 1);
   }, []);
 

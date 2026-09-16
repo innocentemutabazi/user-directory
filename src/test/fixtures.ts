@@ -1,12 +1,5 @@
 import type { User } from '@/features/users/types/user';
 
-/**
- * Hand-built fixtures rather than a dump of the live API response.
- *
- * The names are chosen to exercise the behaviour under test: mixed casing for
- * the case-insensitive filter, and a deliberate A–Z ordering that differs from
- * the array order so sorting cannot pass by accident.
- */
 export function makeUser(overrides: Partial<User> = {}): User {
   return {
     id: 1,
@@ -49,7 +42,6 @@ export const mockUsers: User[] = [
   }),
 ];
 
-/** Replaces global.fetch with a resolved JSON response. */
 export function mockFetchSuccess(payload: unknown) {
   const fetchMock = vi.fn().mockResolvedValue({
     ok: true,
@@ -60,7 +52,6 @@ export function mockFetchSuccess(payload: unknown) {
   return fetchMock;
 }
 
-/** Replaces global.fetch with a non-2xx response. */
 export function mockFetchHttpError(status: number) {
   const fetchMock = vi.fn().mockResolvedValue({
     ok: false,
@@ -71,9 +62,29 @@ export function mockFetchHttpError(status: number) {
   return fetchMock;
 }
 
-/** Replaces global.fetch with a network-level failure. */
 export function mockFetchNetworkError() {
   const fetchMock = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
+}
+
+export function mockFetchUserDirectory(users: User[]) {
+  const fetchMock = vi.fn().mockImplementation((url: string) => {
+    const detailMatch = /\/users\/(\d+)$/.exec(url);
+
+    if (detailMatch) {
+      const id = Number(detailMatch[1]);
+      const found = users.find((candidate) => candidate.id === id);
+      return Promise.resolve(
+        found
+          ? { ok: true, status: 200, json: async () => found }
+          : { ok: false, status: 404, json: async () => ({}) },
+      );
+    }
+
+    return Promise.resolve({ ok: true, status: 200, json: async () => users });
+  });
+
   vi.stubGlobal('fetch', fetchMock);
   return fetchMock;
 }
