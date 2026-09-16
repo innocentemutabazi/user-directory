@@ -34,7 +34,7 @@ export function DetailField({
         <Icon className="size-3.5 shrink-0" aria-hidden="true" />
         {label}
       </dt>
-      <dd className="text-[15px] leading-relaxed break-words">{value}</dd>
+      <dd className="text-[15px] leading-relaxed wrap-break-word">{value}</dd>
     </div>
   );
 }

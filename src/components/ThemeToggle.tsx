@@ -17,7 +17,9 @@ export function ThemeToggle() {
     document.documentElement.dataset.theme = theme;
     try {
       localStorage.setItem(STORAGE_KEY, theme);
-    } catch {}
+    } catch {
+      return;
+    }
   }, [theme]);
 
   const toggle = useCallback(() => {

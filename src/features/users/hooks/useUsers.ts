@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toErrorMessage } from '@/lib/http';
 import { fetchUsers } from '../api/usersApi';
 import type { SearchableField, SortOrder, User } from '../types/user';
@@ -46,9 +46,6 @@ export function useUsers(options: UseUsersOptions = {}): UseUsersResult {
   const [sortOrder, setSortOrder] = useState<SortOrder>(initialSortOrder);
 
   const [attempt, setAttempt] = useState(0);
-
-  const latestAttempt = useRef(attempt);
-  latestAttempt.current = attempt;
 
   useEffect(() => {
     const controller = new AbortController();
