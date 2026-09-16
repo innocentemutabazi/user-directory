@@ -95,7 +95,7 @@ export function UserListPage() {
 
       {!loading && error ? <ErrorState message={error} onRetry={refetch} /> : null}
 
-      {isEmpty && query.trim() ? <EmptyState query={query.trim()} onClear={clearQuery} /> : null}
+      {isEmpty ? <EmptyState query={query.trim() || undefined} onClear={clearQuery} /> : null}
 
       {!loading && !error && users.length > 0 ? (
         <motion.ul className={GRID_CLASSES}>
