@@ -6,7 +6,7 @@ import {
   mockFetchSuccess,
   mockUsers,
 } from '@/test/fixtures';
-import { resetUsersCacheForTests } from '../api/usersCache';
+import { resetUsersCacheForTests, expireUsersCacheForTests } from '../api/usersCache';
 import { useUsers } from './useUsers';
 
 beforeEach(() => {
@@ -256,8 +256,11 @@ describe('useUsers', () => {
       await waitFor(() => expect(first.result.current.loading).toBe(false));
       first.unmount();
 
+      // Simulates remounting UserListPage after Back navigation.
       const second = renderHook(() => useUsers());
 
+      // The lazy initializer seeds state from the cache synchronously, so
+      // there is no loading flash on this second mount.
       expect(second.result.current.loading).toBe(false);
       expect(second.result.current.users).toHaveLength(3);
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -315,6 +318,75 @@ describe('useUsers', () => {
 
       expect(consoleError).not.toHaveBeenCalled();
       consoleError.mockRestore();
+    });
+  });
+
+  describe('background revalidation', () => {
+    it('does not hit the network again on a fresh warm mount', async () => {
+      const fetchMock = mockFetchSuccess(mockUsers);
+
+      const first = renderHook(() => useUsers());
+      await waitFor(() => expect(first.result.current.loading).toBe(false));
+      first.unmount();
+
+      renderHook(() => useUsers());
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('silently refetches a stale cached list and swaps in the fresh data', async () => {
+      const fetchMock = mockFetchSuccess(mockUsers);
+
+      const first = renderHook(() => useUsers());
+      await waitFor(() => expect(first.result.current.loading).toBe(false));
+      first.unmount();
+
+      expireUsersCacheForTests();
+
+      const changedOnBackend = mockUsers.slice(0, 2);
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => changedOnBackend,
+      });
+
+      const second = renderHook(() => useUsers());
+
+      expect(second.result.current.loading).toBe(false);
+      expect(second.result.current.users).toHaveLength(3);
+
+      await waitFor(() => expect(second.result.current.users).toHaveLength(2));
+      expect(second.result.current.loading).toBe(false);
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps showing the cached list if a background revalidation fails', async () => {
+      const fetchMock = mockFetchSuccess(mockUsers);
+
+      const first = renderHook(() => useUsers());
+      await waitFor(() => expect(first.result.current.loading).toBe(false));
+      first.unmount();
+
+      expireUsersCacheForTests();
+      fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+      const second = renderHook(() => useUsers());
+
+      expect(second.result.current.loading).toBe(false);
+      expect(second.result.current.users).toHaveLength(3);
+      expect(second.result.current.error).toBeNull();
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(second.result.current.users).toHaveLength(3);
+      expect(second.result.current.error).toBeNull();
     });
   });
 });

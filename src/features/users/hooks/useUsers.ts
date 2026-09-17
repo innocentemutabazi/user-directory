@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toErrorMessage } from '@/lib/http';
-import { invalidateUsersCache, loadUsers, readUsersCache } from '../api/usersCache';
+import {
+  invalidateUsersCache,
+  loadUsers,
+  readUsersCache,
+  revalidateUsersIfStale,
+} from '../api/usersCache';
 import type { SearchableField, SortOrder, User } from '../types/user';
 
 export interface UseUsersOptions {
@@ -53,7 +58,20 @@ export function useUsers(options: UseUsersOptions = {}): UseUsersResult {
       setAllUsers(cached);
       setLoading(false);
       setError(null);
-      return;
+
+      let active = true;
+
+      revalidateUsersIfStale()
+        .then((data) => {
+          if (!active) return;
+          setAllUsers(data);
+        })
+        .catch(() => {
+        });
+
+      return () => {
+        active = false;
+      };
     }
 
     let active = true;
