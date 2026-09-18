@@ -59,7 +59,10 @@ export function UserDetailSkeleton() {
 
         <div className="overflow-hidden rounded-[1.8rem] border border-line bg-surface">
           {Array.from({ length: 6 }, (_, index) => (
-            <div key={index} className="flex items-center gap-4 border-b border-line p-5 last:border-0">
+            <div
+              key={index}
+              className="flex items-center gap-4 border-b border-line p-5 last:border-0"
+            >
               <Bar className="size-11 shrink-0 rounded-xl" />
               <div className="min-w-0 flex-1 space-y-2">
                 <Bar className="h-2.5 w-20" />
