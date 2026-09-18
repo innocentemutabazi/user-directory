@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { SearchBar } from '../components/SearchBar';
@@ -98,26 +98,28 @@ export function UserListPage() {
       {isEmpty ? <EmptyState query={query.trim() || undefined} onClear={clearQuery} /> : null}
 
       {!loading && !error && users.length > 0 ? (
-        <motion.ul className={GRID_CLASSES}>
-          {users.map((user, index) => (
-            <motion.li
-              key={user.id}
-              layout={!reduceMotion}
-              initial={shouldStagger ? { opacity: 0, y: 12 } : false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.32,
-                ease: [0.22, 1, 0.36, 1],
-                delay: shouldStagger ? Math.min(index, 8) * 0.045 : 0,
-              }}
-            >
-              <UserCard user={user} searchSuffix={searchSuffix} />
-            </motion.li>
-          ))}
-        </motion.ul>
+        <LazyMotion features={domAnimation}>
+          <m.ul className={GRID_CLASSES}>
+            {users.map((user, index) => (
+              <m.li
+                key={user.id}
+                layout={!reduceMotion}
+                initial={shouldStagger ? { opacity: 0, y: 12 } : false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.32,
+                  ease: [0.22, 1, 0.36, 1],
+                  delay: shouldStagger ? Math.min(index, 8) * 0.045 : 0,
+                }}
+              >
+                <UserCard user={user} searchSuffix={searchSuffix} />
+              </m.li>
+            ))}
+          </m.ul>
+        </LazyMotion>
       ) : null}
     </div>
   );
 }
 
-export default UserListPage;
+

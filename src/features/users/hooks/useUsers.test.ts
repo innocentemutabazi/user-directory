@@ -256,11 +256,8 @@ describe('useUsers', () => {
       await waitFor(() => expect(first.result.current.loading).toBe(false));
       first.unmount();
 
-      // Simulates remounting UserListPage after Back navigation.
       const second = renderHook(() => useUsers());
 
-      // The lazy initializer seeds state from the cache synchronously, so
-      // there is no loading flash on this second mount.
       expect(second.result.current.loading).toBe(false);
       expect(second.result.current.users).toHaveLength(3);
       expect(fetchMock).toHaveBeenCalledTimes(1);

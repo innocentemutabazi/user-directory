@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, AtSign, Building2, Globe, MapPin, Phone, User as UserIcon } from 'lucide-react';
 import { ErrorState } from '@/components/ErrorState';
 import { DetailField } from '../components/DetailField';
@@ -39,7 +39,8 @@ export function UserDetailPage() {
     : { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const };
 
   return (
-    <motion.div
+    <LazyMotion features={domAnimation}>
+    <m.div
       initial={reduceMotion ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={transition}
@@ -125,8 +126,9 @@ export function UserDetailPage() {
           </dl>
         </article>
       ) : null}
-    </motion.div>
+    </m.div>
+    </LazyMotion>
   );
 }
 
-export default UserDetailPage;
+

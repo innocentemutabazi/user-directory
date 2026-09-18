@@ -42,12 +42,6 @@ export function loadUser(id: number): Promise<User> {
   return fetchAndCache(id);
 }
 
-/**
- * If this id's cache entry is warm but past its freshness window, refetches
- * it in the background and resolves with the fresh record once that
- * settles. If the entry is missing or still fresh, resolves immediately
- * with whatever is cached (or `null`) and makes no network call.
- */
 export function revalidateUserIfStale(id: number): Promise<User | null> {
   const entry = cache.get(id);
   if (!entry || !isStale(entry)) {
