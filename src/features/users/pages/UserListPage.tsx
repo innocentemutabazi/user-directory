@@ -70,25 +70,31 @@ export function UserListPage() {
         </p>
       </header>
 
-      <div className="flex flex-col gap-3 border-y border-line py-5 sm:flex-row sm:items-center">
+      <div className="flex min-h-[7.5rem] flex-col gap-4 border-y border-line py-5 sm:flex-row sm:items-center sm:gap-0 sm:py-6">
         <SearchBar
           value={query}
           onChange={setQuery}
           onClear={clearQuery}
           disabled={Boolean(error)}
         />
-        <SortToggle
-          sortOrder={sortOrder}
-          onToggle={toggleSortOrder}
-          disabled={loading || Boolean(error)}
-        />
+
+        <div className="flex items-center justify-between gap-5 border-t border-line pt-4 sm:ml-8 sm:border-l sm:border-t-0 sm:pl-7 sm:pt-0">
+          <p className="whitespace-nowrap text-sm font-semibold text-muted">
+            {loading
+              ? 'Loading'
+              : error
+                ? 'Unavailable'
+                : `${resultCount} ${resultCount === 1 ? 'person' : 'people'}`}
+          </p>
+          <SortToggle
+            sortOrder={sortOrder}
+            onToggle={toggleSortOrder}
+            disabled={loading || Boolean(error)}
+          />
+        </div>
       </div>
 
-      <p
-        role="status"
-        aria-live="polite"
-        className="text-xs font-semibold uppercase tracking-[0.14em] text-muted"
-      >
+      <p role="status" aria-live="polite" className="sr-only">
         {resultSummary}
       </p>
 

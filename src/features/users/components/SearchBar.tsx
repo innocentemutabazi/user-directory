@@ -18,7 +18,7 @@ export function SearchBar({ value, onChange, onClear, disabled = false }: Search
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full sm:flex-1">
       <label htmlFor={inputId} className="sr-only">
         Search the directory
       </label>
@@ -42,10 +42,10 @@ export function SearchBar({ value, onChange, onClear, disabled = false }: Search
               handleClear();
             }
           }}
-          placeholder="Search by name, username, or email"
+          placeholder="Search by name..."
           autoComplete="off"
           spellCheck={false}
-          className="h-12 w-full rounded-2xl border border-line bg-surface pl-11 pr-10 text-[15px] placeholder:text-muted/80 shadow-[0_1px_0_rgba(23,26,24,0.04)] transition-[border-color,box-shadow] hover:border-muted/60 focus:border-ink focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_42%,transparent)] disabled:opacity-60 [&::-webkit-search-cancel-button]:appearance-none"
+          className="h-8 w-full rounded-none border-0 bg-transparent pl-10 pr-10 text-base text-ink outline-none placeholder:text-muted/50 transition-colors focus:placeholder:text-muted/30 disabled:opacity-60 [&::-webkit-search-cancel-button]:appearance-none"
         />
 
         {value ? (
