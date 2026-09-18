@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, LazyMotion, domMax, m, useReducedMotion } from 'framer-motion';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { SearchBar } from '../components/SearchBar';
@@ -103,23 +103,32 @@ export function UserListPage() {
       {isEmpty ? <EmptyState query={query.trim() || undefined} onClear={clearQuery} /> : null}
 
       {!loading && !error && users.length > 0 ? (
-        <LazyMotion features={domAnimation}>
-          <m.ul className={GRID_CLASSES}>
-            {users.map((user, index) => (
-              <m.li
-                key={user.id}
-                layout={!reduceMotion}
-                initial={shouldStagger ? { opacity: 0, y: 12 } : false}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.32,
-                  ease: [0.22, 1, 0.36, 1],
-                  delay: shouldStagger ? Math.min(index, 8) * 0.045 : 0,
-                }}
-              >
-                <UserCard user={user} searchSuffix={searchSuffix} />
-              </m.li>
-            ))}
+        <LazyMotion features={domMax}>
+          <m.ul className={GRID_CLASSES} layout={!reduceMotion}>
+            <AnimatePresence initial={false} mode="popLayout">
+              {users.map((user, index) => (
+                <m.li
+                  key={user.id}
+                  layout={reduceMotion ? false : 'position'}
+                  layoutId={`user-card-${user.id}`}
+                  initial={shouldStagger ? { opacity: 0, y: 12 } : false}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, scale: 0.96 }}
+                  transition={{
+                    layout: { type: 'spring', stiffness: 260, damping: 25, mass: 0.8 },
+                    opacity: { duration: 0.24 },
+                    scale: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+                    y: {
+                      duration: 0.32,
+                      ease: [0.22, 1, 0.36, 1],
+                      delay: shouldStagger ? Math.min(index, 8) * 0.045 : 0,
+                    },
+                  }}
+                >
+                  <UserCard user={user} searchSuffix={searchSuffix} />
+                </m.li>
+              ))}
+            </AnimatePresence>
           </m.ul>
         </LazyMotion>
       ) : null}
