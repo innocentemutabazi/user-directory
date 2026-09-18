@@ -66,8 +66,7 @@ export function useUsers(options: UseUsersOptions = {}): UseUsersResult {
           if (!active) return;
           setAllUsers(data);
         })
-        .catch(() => {
-        });
+        .catch(() => {});
 
       return () => {
         active = false;

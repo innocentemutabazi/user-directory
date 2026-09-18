@@ -1,7 +1,7 @@
 import { fetchUserById } from './usersApi';
 import type { User } from '../types/user';
 
-const STALE_TIME_MS = 30_000; 
+const STALE_TIME_MS = 30_000;
 
 interface CacheEntry {
   user: User;
@@ -21,11 +21,13 @@ function fetchAndCache(id: number): Promise<User> {
 
   const request = fetchUserById(id)
     .then((user) => {
-      cache.set(id, { user, fetchedAt: Date.now() });
+      if (inFlightRequests.get(id) === request) {
+        cache.set(id, { user, fetchedAt: Date.now() });
+      }
       return user;
     })
     .finally(() => {
-      inFlightRequests.delete(id);
+      if (inFlightRequests.get(id) === request) inFlightRequests.delete(id);
     });
 
   inFlightRequests.set(id, request);
@@ -54,7 +56,6 @@ export function invalidateUserCache(id: number): void {
   cache.delete(id);
   inFlightRequests.delete(id);
 }
-
 
 export function resetUserCacheForTests(): void {
   cache.clear();

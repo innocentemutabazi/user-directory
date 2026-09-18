@@ -266,7 +266,6 @@ describe('useUsers', () => {
     it('shares one in-flight request across simultaneous mounts', async () => {
       const fetchMock = mockFetchSuccess(mockUsers);
 
-
       const first = renderHook(() => useUsers());
       const second = renderHook(() => useUsers());
 

@@ -16,7 +16,7 @@ export interface UseUserResult {
 }
 
 export function useUser(id: number): UseUserResult {
-  const isValidId = Number.isFinite(id);
+  const isValidId = Number.isInteger(id) && id > 0;
 
   const [user, setUser] = useState<User | null>(() => (isValidId ? readUserCache(id) : null));
   const [loading, setLoading] = useState(() => isValidId && readUserCache(id) === null);
@@ -24,7 +24,7 @@ export function useUser(id: number): UseUserResult {
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (!Number.isFinite(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
       setUser(null);
       setLoading(false);
       setError('That profile is not in the directory.');
@@ -45,8 +45,7 @@ export function useUser(id: number): UseUserResult {
           if (!active || !data) return;
           setUser(data);
         })
-        .catch(() => {
-        });
+        .catch(() => {});
 
       return () => {
         active = false;
@@ -79,7 +78,7 @@ export function useUser(id: number): UseUserResult {
   }, [id, attempt]);
 
   const refetch = useCallback(() => {
-    if (Number.isFinite(id)) invalidateUserCache(id);
+    if (Number.isInteger(id) && id > 0) invalidateUserCache(id);
     setAttempt((current) => current + 1);
   }, [id]);
 

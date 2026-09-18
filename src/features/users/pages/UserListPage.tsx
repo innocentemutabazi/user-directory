@@ -121,5 +121,3 @@ export function UserListPage() {
     </div>
   );
 }
-
-

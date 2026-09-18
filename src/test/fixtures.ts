@@ -68,7 +68,6 @@ export function mockFetchNetworkError() {
   return fetchMock;
 }
 
-
 export function mockFetchUserDirectory(users: User[]) {
   const fetchMock = vi.fn().mockImplementation((url: string) => {
     const detailMatch = /\/users\/(\d+)$/.exec(url);

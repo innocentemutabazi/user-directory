@@ -13,15 +13,18 @@ function isStale(): boolean {
 
 function fetchAndCache(): Promise<User[]> {
   if (!inFlightRequest) {
-    inFlightRequest = fetchUsers()
+    const request = fetchUsers()
       .then((data) => {
-        cachedUsers = data;
-        cachedAt = Date.now();
+        if (inFlightRequest === request) {
+          cachedUsers = data;
+          cachedAt = Date.now();
+        }
         return data;
       })
       .finally(() => {
-        inFlightRequest = null;
+        if (inFlightRequest === request) inFlightRequest = null;
       });
+    inFlightRequest = request;
   }
   return inFlightRequest;
 }
@@ -34,7 +37,6 @@ export function loadUsers(): Promise<User[]> {
   if (cachedUsers) return Promise.resolve(cachedUsers);
   return fetchAndCache();
 }
-
 
 export function revalidateUsersIfStale(): Promise<User[]> {
   if (!cachedUsers || !isStale()) {

@@ -187,19 +187,19 @@ set before first paint to avoid a flash.
 
 ## Testing
 
-53 tests across 5 files, run with Vitest and React Testing Library.
+93 tests across 7 files, run with Vitest and React Testing Library.
 
 ```bash
 npm test
 ```
 
-| File                        | Covers                                                                                                                                                              |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useUsers.test.ts`          | Fetch lifecycle, A–Z/Z–A sorting, case-insensitive and partial search, whitespace handling, empty state, HTTP and network failures, malformed payloads, retry recovery, session-cache reuse, concurrent-mount de-duplication, and the unmount-before-resolve safety net |
-| `UserCard.test.tsx`         | Rendered fields, profile link, search params carried into the link, accessible name, single tab stop, initials derivation including honorifics                    |
-| `UserListPage.test.tsx`     | Loading → loaded flow, live filtering, empty state and recovery (including a zero-users-from-the-API result, distinct from a no-matches search), sort toggle, query and sort restored from the URL, error state with working retry |
-| `UserDetailPage.test.tsx`   | All required fields, correct endpoint, `mailto:`/`tel:` link generation, both back-navigation paths, 404 handling, non-numeric id guard                            |
-| `UserNavigation.test.tsx`   | List → profile → Back with both routes mounted together: the list is not refetched, renders immediately from cache, and the search filter survives the round trip |
+| File                      | Covers                                                                                                                                                                                                                                                                  |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useUsers.test.ts`        | Fetch lifecycle, A–Z/Z–A sorting, case-insensitive and partial search, whitespace handling, empty state, HTTP and network failures, malformed payloads, retry recovery, session-cache reuse, concurrent-mount de-duplication, and the unmount-before-resolve safety net |
+| `UserCard.test.tsx`       | Rendered fields, profile link, search params carried into the link, accessible name, single tab stop, initials derivation including honorifics                                                                                                                          |
+| `UserListPage.test.tsx`   | Loading → loaded flow, live filtering, empty state and recovery (including a zero-users-from-the-API result, distinct from a no-matches search), sort toggle, query and sort restored from the URL, error state with working retry                                      |
+| `UserDetailPage.test.tsx` | All required fields, correct endpoint, `mailto:`/`tel:` link generation, both back-navigation paths, 404 handling, non-numeric id guard                                                                                                                                 |
+| `UserNavigation.test.tsx` | List → profile → Back with both routes mounted together: the list is not refetched, renders immediately from cache, and the search filter survives the round trip                                                                                                       |
 
 Tests assert on what a user perceives — roles, labels, visible text — rather than on component
 internals, so they survive refactors. `fetch` is stubbed per test via helpers in
@@ -262,20 +262,18 @@ return shape with that migration in mind, but did not build for a scale the API 
 instant and a debounce would only add perceived lag. The moment a keystroke costs a request, it
 becomes necessary.
 
-**Extend the cache to the detail endpoint.** The list is cached (`usersCache.ts`), so navigating
-back to it is free after the first load — but opening the same profile twice still fetches it
-twice, since `useUser` has no cache of its own. The pattern is proven; it's a matter of applying it
-to a second, keyed-by-id dataset. TanStack Query would replace both hand-rolled caches with one
-well-tested one, at the bundle-size cost discussed above.
+**Use a data-fetching library.** The list and detail endpoints now have small, keyed caches with
+stale revalidation. TanStack Query would replace both hand-rolled caches with one well-tested
+solution and add richer invalidation and background error reporting, at the bundle-size cost
+discussed above.
 
 **End-to-end tests.** The current suite mocks `fetch`. Playwright covering search → open profile →
 back-with-state-preserved would test the real router, the real network layer, and the real browser
 back button, which is exactly where the current tests are weakest.
 
-**Trim the bundle.** The build is 146 kB gzipped and Framer Motion is roughly a third of it, for
-one stagger and one page fade. The brief asked for it, but honestly CSS transitions would have
-covered this scope. `LazyMotion` with `domAnimation` would cut it substantially, or dropping the
-dependency entirely would cut it further.
+**Trim the bundle.** The current production JavaScript is approximately 134 kB gzipped, and
+Framer Motion is a significant portion of it for one stagger and one page fade. CSS transitions
+would cover this scope; dropping the dependency entirely would reduce the bundle further.
 
 **Visual regression testing.** The design relies on a token system across two themes. Chromatic or
 Playwright screenshots would catch contrast and layout regressions that unit tests cannot see.
