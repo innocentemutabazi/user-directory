@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { toErrorMessage } from '@/lib/http';
-import { fetchUserById } from '../api/usersApi';
+import {
+  invalidateUserCache,
+  loadUser,
+  readUserCache,
+  revalidateUserIfStale,
+} from '../api/userCache';
 import type { User } from '../types/user';
 
 export interface UseUserResult {
@@ -11,8 +16,10 @@ export interface UseUserResult {
 }
 
 export function useUser(id: number): UseUserResult {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const isValidId = Number.isFinite(id);
+
+  const [user, setUser] = useState<User | null>(() => (isValidId ? readUserCache(id) : null));
+  const [loading, setLoading] = useState(() => isValidId && readUserCache(id) === null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
@@ -24,19 +31,40 @@ export function useUser(id: number): UseUserResult {
       return;
     }
 
-    const controller = new AbortController();
+    const cached = readUserCache(id);
+
+    if (cached) {
+      setUser(cached);
+      setLoading(false);
+      setError(null);
+
+      let active = true;
+
+      revalidateUserIfStale(id)
+        .then((data) => {
+          if (!active || !data) return;
+          setUser(data);
+        })
+        .catch(() => {
+        });
+
+      return () => {
+        active = false;
+      };
+    }
+
     let active = true;
 
     setLoading(true);
     setError(null);
 
-    fetchUserById(id, controller.signal)
+    loadUser(id)
       .then((data) => {
         if (!active) return;
         setUser(data);
       })
       .catch((cause: unknown) => {
-        if (!active || controller.signal.aborted) return;
+        if (!active) return;
         setUser(null);
         setError(toErrorMessage(cause));
       })
@@ -47,13 +75,13 @@ export function useUser(id: number): UseUserResult {
 
     return () => {
       active = false;
-      controller.abort();
     };
   }, [id, attempt]);
 
   const refetch = useCallback(() => {
+    if (Number.isFinite(id)) invalidateUserCache(id);
     setAttempt((current) => current + 1);
-  }, []);
+  }, [id]);
 
   return { user, loading, error, refetch };
 }

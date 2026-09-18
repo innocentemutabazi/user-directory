@@ -49,7 +49,6 @@ export function invalidateUsersCache(): void {
   inFlightRequest = null;
 }
 
-
 export function resetUsersCacheForTests(): void {
   cachedUsers = null;
   cachedAt = null;

@@ -4,11 +4,13 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mockFetchUserDirectory, mockUsers } from '@/test/fixtures';
 import { resetUsersCacheForTests } from '../api/usersCache';
+import { resetUserCacheForTests } from '../api/userCache';
 import { UserDetailPage } from './UserDetailPage';
 import { UserListPage } from './UserListPage';
 
 beforeEach(() => {
   resetUsersCacheForTests();
+  resetUserCacheForTests();
 });
 
 afterEach(() => {
@@ -60,7 +62,6 @@ describe('list → detail → back navigation', () => {
     await user.click(screen.getByRole('link', { name: 'View profile for Leanne Graham' }));
     await screen.findByRole('heading', { name: 'Leanne Graham' });
     await user.click(screen.getByRole('button', { name: /back to directory/i }));
-
 
     expect(screen.getByRole('list')).toBeInTheDocument();
     expect(screen.getAllByRole('listitem')).toHaveLength(3);

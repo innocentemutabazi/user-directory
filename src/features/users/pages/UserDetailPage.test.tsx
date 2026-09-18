@@ -1,9 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { makeUser, mockFetchHttpError, mockFetchSuccess } from '@/test/fixtures';
+import { resetUserCacheForTests } from '../api/userCache';
 import { UserDetailPage } from './UserDetailPage';
+
+beforeEach(() => {
+  resetUserCacheForTests();
+});
 
 afterEach(() => {
   vi.unstubAllGlobals();
