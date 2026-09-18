@@ -117,19 +117,17 @@ describe('toWebsiteHref', () => {
 });
 
 describe('toMapHref', () => {
-  it('returns an OpenStreetMap URL with the correct lat/lng', () => {
+  it('returns a Google Maps URL with the correct lat/lng', () => {
     const user = makeUser();
     const href = toMapHref(user);
-    expect(href).toContain('openstreetmap.org');
+    expect(href).toContain('google.com/maps/search/');
     expect(href).toContain(user.address.geo.lat);
     expect(href).toContain(user.address.geo.lng);
   });
 
-  it('includes both the mlat/mlon query params and the map hash fragment', () => {
+  it('includes a Google Maps search query for the coordinates', () => {
     const user = makeUser();
     const href = toMapHref(user);
-    expect(href).toContain('mlat=-37.3159');
-    expect(href).toContain('mlon=81.1496');
-    expect(href).toContain('#map=12/-37.3159/81.1496');
+    expect(href).toContain('query=-37.3159%2C81.1496');
   });
 });

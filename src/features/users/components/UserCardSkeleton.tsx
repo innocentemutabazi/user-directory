@@ -13,7 +13,7 @@ export function UserCardSkeleton({ count = 6 }: UserCardSkeletonProps) {
         <div
           key={index}
           aria-hidden="true"
-          className="shimmer flex h-full flex-col gap-4 rounded-card border border-line bg-surface p-5"
+          className="shimmer flex min-h-72 h-full flex-col gap-4 rounded-card border border-line bg-surface p-5"
         >
           <div className="flex items-start gap-3.5">
             <Bar className="size-11 shrink-0 rounded-md" />

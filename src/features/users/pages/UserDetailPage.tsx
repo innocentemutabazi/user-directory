@@ -49,10 +49,10 @@ export function UserDetailPage() {
         <button
           type="button"
           onClick={goBack}
-          className="group inline-flex items-center gap-2 rounded-md text-sm font-medium text-muted transition-colors hover:text-accent"
+          className="group inline-flex items-center gap-3 rounded-full pr-4 text-sm font-bold text-ink transition-colors hover:bg-surface"
         >
           <ArrowLeft
-            className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5"
+            className="grid size-10 rounded-full border border-line p-2 transition-[background-color,color,transform] duration-200 group-hover:-translate-x-0.5 group-hover:bg-ink group-hover:text-canvas"
             aria-hidden="true"
           />
           Back to directory
@@ -75,55 +75,78 @@ export function UserDetailPage() {
         ) : null}
 
         {!loading && !error && user ? (
-          <article className="space-y-10">
-            <header className="flex flex-wrap items-center gap-5">
+          <article className="grid gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(24rem,.8fr)] lg:gap-20">
+            <header className="border-line lg:border-r-2 lg:pr-12">
               <span
                 aria-hidden="true"
-                className="grid size-16 shrink-0 place-items-center rounded-lg bg-accent-soft font-display text-2xl font-medium text-accent"
+                className="grid size-24 place-items-center rounded-[1.8rem] bg-accent font-display text-3xl text-accent-ink shadow-[inset_0_0_0_1px_rgba(23,26,24,0.08)]"
               >
                 {getInitials(user.name)}
               </span>
 
-              <div className="min-w-0">
-                <h1 className="font-display text-4xl leading-tight text-ink">{user.name}</h1>
-                <p className="mt-1 text-[15px] text-muted">
-                  {user.company.name} — {user.company.catchPhrase}
-                </p>
-              </div>
+              <p className="mt-8 text-xs font-bold uppercase tracking-[0.2em] text-muted">
+                @{user.username}
+              </p>
+              <h1 className="mt-3 max-w-4xl font-display text-[clamp(3.5rem,8vw,7.5rem)] leading-[0.88] text-ink">
+                {user.name}
+              </h1>
+              <blockquote className="mt-9 max-w-xl border-l-2 border-accent pl-5 text-lg leading-8 text-muted">
+                “{user.company.catchPhrase}”
+              </blockquote>
             </header>
 
-            <dl className="grid gap-x-12 gap-y-7 border-t border-line pt-8 sm:grid-cols-2">
-              <DetailField label="Username" icon={UserIcon}>
-                @{user.username}
-              </DetailField>
+            <div className="lg:pt-8">
+              <p className="mb-5 flex items-center gap-3 text-[0.68rem] font-bold uppercase tracking-[0.2em] text-muted">
+                <span className="h-px w-8 bg-muted" />
+                Contact details
+              </p>
 
-              <DetailField label="Email" icon={AtSign} href={`mailto:${user.email}`}>
-                {user.email}
-              </DetailField>
+              <dl className="overflow-hidden rounded-[1.8rem] border border-line bg-surface shadow-[0_1px_0_rgba(23,26,24,0.04)]">
+                <DetailField label="Username" icon={UserIcon}>
+                  @{user.username}
+                </DetailField>
 
-              <DetailField label="Phone" icon={Phone} href={toTelHref(user.phone)}>
-                {user.phone}
-              </DetailField>
+                <DetailField label="Email" icon={AtSign} href={`mailto:${user.email}`}>
+                  {user.email}
+                </DetailField>
 
-              <DetailField label="Website" icon={Globe} href={toWebsiteHref(user.website)} external>
-                {user.website}
-              </DetailField>
+                <DetailField label="Phone" icon={Phone} href={toTelHref(user.phone)}>
+                  {user.phone}
+                </DetailField>
 
-              <DetailField label="Company" icon={Building2}>
-                {user.company.name}
-              </DetailField>
+                <DetailField
+                  label="Website"
+                  icon={Globe}
+                  href={toWebsiteHref(user.website)}
+                  external
+                >
+                  {user.website}
+                </DetailField>
 
-              <DetailField label="Address" icon={MapPin} href={toMapHref(user)} external>
-                <span className="sr-only">{formatAddress(user.address)}</span>
-                <span aria-hidden="true" className="block">
-                  {formatAddressLines(user.address).map((line) => (
-                    <span key={line} className="block">
-                      {line}
-                    </span>
-                  ))}
-                </span>
-              </DetailField>
-            </dl>
+                <DetailField label="Company" icon={Building2}>
+                  {user.company.name}
+                </DetailField>
+
+                <DetailField label="Address" icon={MapPin} href={toMapHref(user)} external>
+                  <span className="sr-only">{formatAddress(user.address)}</span>
+                  <span aria-hidden="true" className="block">
+                    {formatAddressLines(user.address).map((line) => (
+                      <span key={line} className="block">
+                        {line}
+                      </span>
+                    ))}
+                  </span>
+                </DetailField>
+              </dl>
+
+              <a
+                href={`mailto:${user.email}`}
+                className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-ink px-5 py-4 font-semibold text-canvas transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-ink/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              >
+                <AtSign className="size-4" aria-hidden="true" />
+                Send a message
+              </a>
+            </div>
           </article>
         ) : null}
       </m.div>

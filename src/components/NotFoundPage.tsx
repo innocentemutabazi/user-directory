@@ -9,7 +9,7 @@ export function NotFoundPage() {
       </p>
       <Link
         to="/"
-        className="inline-block rounded-md bg-ink px-4 py-2 text-sm font-medium text-canvas transition-opacity hover:opacity-85"
+        className="inline-block rounded-full bg-ink px-5 py-2.5 text-sm font-bold text-canvas transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-ink/80"
       >
         Go to the directory
       </Link>

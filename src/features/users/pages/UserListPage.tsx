@@ -9,7 +9,7 @@ import { UserCard } from '../components/UserCard';
 import { UserCardSkeleton } from '../components/UserCardSkeleton';
 import { useUsers } from '../hooks/useUsers';
 
-const GRID_CLASSES = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3';
+const GRID_CLASSES = 'grid gap-4 pt-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
 
 export function UserListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -59,17 +59,18 @@ export function UserListPage() {
       : `${resultCount} of ${totalCount} ${totalCount === 1 ? 'person' : 'people'} shown`;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-3">
-        <h1 className="font-display text-4xl leading-tight text-ink sm:text-[2.75rem]">
+    <div className="space-y-9">
+      <header className="space-y-4 pt-2 sm:pt-5">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted">People directory</p>
+        <h1 className="max-w-4xl font-display text-[clamp(3.4rem,8vw,7rem)] leading-[0.9] text-ink">
           Staff directory
         </h1>
-        <p className="max-w-[60ch] text-[15px] leading-relaxed text-muted">
+        <p className="max-w-[54ch] text-base leading-relaxed text-muted sm:text-lg">
           Find a colleague and open their profile for full contact details.
         </p>
       </header>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 border-y border-line py-5 sm:flex-row sm:items-center">
         <SearchBar
           value={query}
           onChange={setQuery}
@@ -83,7 +84,11 @@ export function UserListPage() {
         />
       </div>
 
-      <p role="status" aria-live="polite" className="text-sm text-muted">
+      <p
+        role="status"
+        aria-live="polite"
+        className="text-xs font-semibold uppercase tracking-[0.14em] text-muted"
+      >
         {resultSummary}
       </p>
 

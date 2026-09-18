@@ -35,5 +35,5 @@ export function toWebsiteHref(website: string): string {
 
 export function toMapHref(user: User): string {
   const { lat, lng } = user.address.geo;
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=12/${lat}/${lng}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lat},${lng}`)}`;
 }
