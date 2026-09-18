@@ -45,7 +45,7 @@ export function SearchBar({ value, onChange, onClear, disabled = false }: Search
           placeholder="Search by name..."
           autoComplete="off"
           spellCheck={false}
-          className="h-8 w-full rounded-none border-0 bg-transparent pl-10 pr-10 text-base text-ink outline-none placeholder:text-muted/50 transition-colors focus:placeholder:text-muted/30 disabled:opacity-60 [&::-webkit-search-cancel-button]:appearance-none"
+          className="h-8 w-full rounded-none border-0 bg-transparent pl-10 pr-10 text-base text-ink outline-none placeholder:text-muted/50 transition-colors focus:placeholder:text-muted/30 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:opacity-60 [&::-webkit-search-cancel-button]:appearance-none"
         />
 
         {value ? (

@@ -113,7 +113,7 @@ problem that does not exist here.
 TanStack Query is the closest call, and it is the right answer for most production apps of this
 shape — it would give caching, deduplication, and background refetching for roughly 13 kB. I left
 it out because the brief is a 48-hour exercise assessing how I build from primitives, and because
-`useUsers` reaches ~120 lines including its abort handling and retry logic. If this were going to
+`useUsers` reaches ~120 lines including its stale-response guard and retry logic. If this were going to
 production with more endpoints, I would add it on day one.
 
 The core of the decision is how `useUsers` derives state:
