@@ -32,24 +32,45 @@ export function UserCardSkeleton({ count = 6 }: UserCardSkeletonProps) {
   );
 }
 
-/** Loading placeholder for the profile page. */
 export function UserDetailSkeleton() {
   return (
-    <div aria-hidden="true" className="shimmer space-y-10">
-      <div className="flex items-center gap-4">
-        <Bar className="size-16 rounded-md" />
-        <div className="space-y-2.5">
-          <Bar className="h-7 w-56" />
-          <Bar className="h-4 w-32" />
+    <div
+      aria-hidden="true"
+      className="shimmer grid gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(24rem,.8fr)] lg:gap-20"
+    >
+      <div className="border-line lg:border-r-2 lg:pr-12">
+        <Bar className="size-24 rounded-[1.8rem]" />
+        <Bar className="mt-8 h-3 w-24" />
+        <div className="mt-4 max-w-2xl space-y-3">
+          <Bar className="h-16 w-[82%] sm:h-24" />
+          <Bar className="h-16 w-[64%] sm:h-24" />
+        </div>
+        <div className="mt-9 max-w-xl space-y-2 border-l-2 border-accent pl-5">
+          <Bar className="h-5 w-[88%]" />
+          <Bar className="h-5 w-[58%]" />
         </div>
       </div>
-      <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
-        {Array.from({ length: 6 }, (_, index) => (
-          <div key={index} className="space-y-2">
-            <Bar className="h-3 w-20" />
-            <Bar className="h-4 w-44" />
-          </div>
-        ))}
+
+      <div className="lg:pt-8">
+        <div className="mb-5 flex items-center gap-3">
+          <Bar className="h-px w-8" />
+          <Bar className="h-3 w-32" />
+        </div>
+
+        <div className="overflow-hidden rounded-[1.8rem] border border-line bg-surface">
+          {Array.from({ length: 6 }, (_, index) => (
+            <div key={index} className="flex items-center gap-4 border-b border-line p-5 last:border-0">
+              <Bar className="size-11 shrink-0 rounded-xl" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Bar className="h-2.5 w-20" />
+                <Bar className={`h-4 ${index === 5 ? 'w-40' : 'w-44'}`} />
+                {index === 5 ? <Bar className="h-4 w-28" /> : null}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Bar className="mt-4 h-14 w-full rounded-2xl" />
       </div>
     </div>
   );

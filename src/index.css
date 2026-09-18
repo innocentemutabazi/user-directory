@@ -3,7 +3,7 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 @theme {
-  --color-canvas: #f4f2ec;
+  --color-canvas: white;
   --color-surface: #fffefa;
   --color-raised: #eeece5;
   --color-ink: #171a18;
